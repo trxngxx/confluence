@@ -1,43 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    kompose.cmd: kompose convert -o k8s/
-    kompose.version: 1.33.0 (3ce457399)
-  labels:
-    io.kompose.service: confluence
-  name: confluence
+  name: confluence-deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: confluence
-  strategy:
-    type: Recreate
+      app: confluence
   template:
     metadata:
-      annotations:
-        kompose.cmd: kompose convert -o k8s/
-        kompose.version: 1.33.0 (3ce457399)
       labels:
-        io.kompose.network/confluence-network-bridge: "true"
-        io.kompose.service: confluence
+        app: confluence
     spec:
       containers:
-        - env:
-            - name: TZ
-              value: Asia/Ho_Chi_Minh
-          image: 29trxngxx/confluence:v1
-          name: confluence-srv
-          ports:
-            - containerPort: 8090
-              hostPort: 8090
-              protocol: TCP
-          volumeMounts:
-            - mountPath: /var/confluence
-              name: home-data
-      restartPolicy: Always
-      volumes:
+      - name: confluence-container
+        image: 29trxngxx/confluence:v1
+        ports:
+        - containerPort: 8090
+        env:
+        - name: TZ
+          value: "Asia/Ho_Chi_Minh"
+        volumeMounts:
         - name: home-data
-          persistentVolumeClaim:
-            claimName: home-data
+          mountPath: /var/confluence
+      volumes:
+      - name: home-data
+        persistentVolumeClaim:
+          claimName: home-data
