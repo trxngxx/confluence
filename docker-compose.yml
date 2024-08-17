@@ -1,7 +1,7 @@
 version: '3.4'
 services:
   confluence:
-    image: haxqer/confluence:9.0.1
+    image: 29trxngxx/confluence-custom:latest
     container_name: confluence-srv
     environment:
       - TZ=Asia/Ho_Chi_Minh
