@@ -1,7 +1,10 @@
-FROM openjdk:17-bullseye
+# Base image
+FROM ubuntu:22.04
 
-LABEL maintainer="haxqer <haxqer666@gmail.com>" version="9.0.1"
+# Label maintainer
+LABEL maintainer="ngotran <ngo.tran@seta-international.vn>" version="9.0.1"
 
+# Environment variable
 ARG ATLASSIAN_PRODUCTION=confluence
 ARG APP_NAME=confluence
 ARG APP_VERSION=9.0.1
@@ -19,14 +22,17 @@ ENV CONFLUENCE_HOME=/var/confluence \
 
 ENV JAVA_OPTS="-javaagent:${AGENT_PATH}/${AGENT_FILENAME} ${JAVA_OPTS}"
 
-# Cài đặt sudo và tạo user ubuntu
-RUN apt-get update && apt-get install -y sudo && \
-    groupadd -g 1001 ubuntu && \
-    useradd -u 1001 -g ubuntu -m ubuntu && \
-    echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+# Install dependencies
+RUN apt-get update && apt-get --no-install-recommends install -y \
+    curl \
+    openjdk-17-jdk \
+    && rm -rf /var/lib/apt/lists/*
 
-# Tạo các thư mục cần thiết và thiết lập quyền sở hữu cho user ubuntu
-RUN mkdir -p ${CONFLUENCE_INSTALL} ${CONFLUENCE_HOME} ${AGENT_PATH} ${CONFLUENCE_INSTALL}${LIB_PATH} && \
+# Create user ubuntu, group ubuntu and setup permissions for directories
+RUN groupadd -g 1001 ubuntu && \
+    useradd -u 1001 -g ubuntu -m ubuntu && \
+    echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && \
+    mkdir -p ${CONFLUENCE_INSTALL} ${CONFLUENCE_HOME} ${AGENT_PATH} ${CONFLUENCE_INSTALL}${LIB_PATH} && \
     curl -o ${AGENT_PATH}/${AGENT_FILENAME}  https://github.com/haxqer/confluence/releases/download/v${AGENT_VERSION}/atlassian-agent.jar -L && \
     curl -o /tmp/atlassian.tar.gz https://product-downloads.atlassian.com/software/confluence/downloads/atlassian-${APP_NAME}-${APP_VERSION}.tar.gz -L && \
     tar xzf /tmp/atlassian.tar.gz -C /opt/confluence/ --strip-components 1 && \
@@ -36,10 +42,12 @@ RUN mkdir -p ${CONFLUENCE_INSTALL} ${CONFLUENCE_HOME} ${AGENT_PATH} ${CONFLUENCE
     echo "confluence.home = ${CONFLUENCE_HOME}" > ${CONFLUENCE_INSTALL}/${ATLASSIAN_PRODUCTION}/WEB-INF/classes/confluence-init.properties && \
     chown -R ubuntu:ubuntu ${CONFLUENCE_INSTALL} ${CONFLUENCE_HOME} ${AGENT_PATH}
 
-# Chuyển sang user ubuntu
+# Switch user ubuntu
 USER ubuntu
 
+# Change workdir and open port
 WORKDIR $CONFLUENCE_INSTALL
 EXPOSE 8090
 
+# Run Confluence
 ENTRYPOINT ["/opt/confluence/bin/start-confluence.sh", "-fg"]
