@@ -4,10 +4,7 @@ services:
     image: haxqer/confluence:8.5.14
     container_name: confluence-srv
     environment:
-      - TZ=Asia/Shanghai
-    #      - JVM_MINIMUM_MEMORY=1g
-    #      - JVM_MAXIMUM_MEMORY=12g
-    #      - JVM_CODE_CACHE_ARGS='-XX:InitialCodeCacheSize=1g -XX:ReservedCodeCacheSize=8g'
+      - TZ=Asia/Ho_Chi_Minh
     depends_on:
       - mysql
     ports:
